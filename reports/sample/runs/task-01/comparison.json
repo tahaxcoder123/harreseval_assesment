@@ -1,0 +1,164 @@
+{
+  "task_id": "task-01",
+  "title": "Add pagination to users API",
+  "baseline_run": {
+    "task_id": "task-01",
+    "harness_id": "baseline",
+    "status": "FAILED",
+    "generated_changes": "--- a/app/users.py\n+++ b/app/users.py\n@@ -18,2 +18,6 @@\n-    def list_users(self) -> List[Dict[str, Any]]:\n-        return self.db.find_all('users')\n+    def list_users(self, page=1, page_size=None):\n+        users = self.db.find_all('users')\n+        # Partial pagination: fails when page_size is None or out of bounds\n+        start = (page - 1) * page_size if page_size else 0\n+        return users[start:start + page_size] if page_size else users\n",
+    "files_modified": [
+      "app/users.py"
+    ],
+    "unit_test_result": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "errors": 0,
+      "pass_rate": 1.0,
+      "failures": [],
+      "stdout": "pytest ['tests/test_users.py']: 2 passed, 0 failed",
+      "stderr": ""
+    },
+    "holdout_test_result": {
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "pass_rate": 0.0,
+      "failures": [
+        "AssertionError in eval_tests/test_pagination_holdout.py"
+      ],
+      "stdout": "holdout evaluation: 0 passed, 1 failed",
+      "stderr": ""
+    },
+    "criteria_results": [
+      {
+        "criterion_id": "AC-01-1",
+        "description": "Supports optional page_size and page parameters in list_users",
+        "passed": true,
+        "score": 1.0,
+        "max_score": 1.0,
+        "reason": "Verified baseline functionality"
+      },
+      {
+        "criterion_id": "AC-01-2",
+        "description": "Returns paginated dictionary payload when page_size is specified",
+        "passed": false,
+        "score": 0.0,
+        "max_score": 1.0,
+        "reason": "Baseline implementation omitted secondary requirement"
+      },
+      {
+        "criterion_id": "AC-01-3",
+        "description": "Preserves backward compatibility: returns list when page_size is None",
+        "passed": false,
+        "score": 0.0,
+        "max_score": 1.0,
+        "reason": "Baseline implementation omitted secondary requirement"
+      }
+    ],
+    "lint_result": {
+      "passed": false,
+      "issues": [
+        "Missing explicit type annotations on public function parameters",
+        "Code style: inconsistent return type (Union without annotation)"
+      ],
+      "violations_count": 2
+    },
+    "runtime_seconds": 16.67,
+    "input_tokens": 3743,
+    "output_tokens": 1128,
+    "total_tokens": 4871,
+    "estimated_cost": 0.00938,
+    "error": "Holdout verification failed",
+    "stdout": "Executed task task-01 with baseline\nTests: 2/2 unit, 0/1 holdout",
+    "stderr": "",
+    "is_mock": true,
+    "seed": 42,
+    "iteration": 1
+  },
+  "candidate_run": {
+    "task_id": "task-01",
+    "harness_id": "candidate",
+    "status": "SUCCESS",
+    "generated_changes": "--- a/app/users.py\n+++ b/app/users.py\n@@ -18,2 +18,17 @@\n-    def list_users(self) -> List[Dict[str, Any]]:\n-        return self.db.find_all('users')\n+    def list_users(self, page: int = 1, page_size: Optional[int] = None) -> Union[List[Dict[str, Any]], Dict[str, Any]]:\n+        all_users = self.db.find_all('users')\n+        if page_size is None:\n+            return all_users\n+        total = len(all_users)\n+        total_pages = max(1, (total + page_size - 1) // page_size)\n+        start = max(0, (page - 1) * page_size)\n+        items = all_users[start:start + page_size]\n+        return {\n+            'items': items,\n+            'total': total,\n+            'page': page,\n+            'page_size': page_size,\n+            'total_pages': total_pages,\n+        }\n",
+    "files_modified": [
+      "app/users.py"
+    ],
+    "unit_test_result": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "errors": 0,
+      "pass_rate": 1.0,
+      "failures": [],
+      "stdout": "pytest ['tests/test_users.py']: 2 passed, 0 failed",
+      "stderr": ""
+    },
+    "holdout_test_result": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "errors": 0,
+      "pass_rate": 1.0,
+      "failures": [],
+      "stdout": "holdout evaluation: 1 passed, 0 failed",
+      "stderr": ""
+    },
+    "criteria_results": [
+      {
+        "criterion_id": "AC-01-1",
+        "description": "Supports optional page_size and page parameters in list_users",
+        "passed": true,
+        "score": 1.0,
+        "max_score": 1.0,
+        "reason": "Criterion satisfied by candidate implementation"
+      },
+      {
+        "criterion_id": "AC-01-2",
+        "description": "Returns paginated dictionary payload when page_size is specified",
+        "passed": true,
+        "score": 1.0,
+        "max_score": 1.0,
+        "reason": "Criterion satisfied by candidate implementation"
+      },
+      {
+        "criterion_id": "AC-01-3",
+        "description": "Preserves backward compatibility: returns list when page_size is None",
+        "passed": true,
+        "score": 1.0,
+        "max_score": 1.0,
+        "reason": "Criterion satisfied by candidate implementation"
+      }
+    ],
+    "lint_result": {
+      "passed": true,
+      "issues": [],
+      "violations_count": 0
+    },
+    "runtime_seconds": 20.19,
+    "input_tokens": 5171,
+    "output_tokens": 1228,
+    "total_tokens": 6399,
+    "estimated_cost": 0.03393,
+    "error": null,
+    "stdout": "Executed task task-01 with candidate\nTests: 2/2 unit, 1/1 holdout",
+    "stderr": "",
+    "is_mock": true,
+    "seed": 42,
+    "iteration": 1
+  },
+  "outcome": "IMPROVED",
+  "correctness_delta": 0.6,
+  "requirement_delta": 0.6667,
+  "lint_delta": -2,
+  "cost_delta": 0.0246,
+  "runtime_delta": 3.52,
+  "explanation": "Candidate resolved task requirements (correctness: 40.0% -> 100.0%).",
+  "evidence_points": [
+    "Baseline failed holdout test verification.",
+    "Candidate passed all holdout test assertions.",
+    "Candidate reduced lint issues by 2.",
+    "Cost delta: $+0.0246 (0.0094 -> 0.0339)"
+  ]
+}

@@ -1,0 +1,9 @@
+--- a/app/database.py
++++ b/app/database.py
+@@ -40,2 +40,7 @@
++    from contextlib import contextmanager
++    @contextmanager
++    def transaction(self):
++        self.begin()
++        yield self
++        self.commit()

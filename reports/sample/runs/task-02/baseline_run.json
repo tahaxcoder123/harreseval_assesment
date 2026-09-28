@@ -1,0 +1,77 @@
+{
+  "task_id": "task-02",
+  "harness_id": "baseline",
+  "status": "FAILED",
+  "generated_changes": "--- a/app/orders.py\n+++ b/app/orders.py\n@@ -25,2 +25,3 @@\n-        total = round(subtotal + discount_amount + tax_amount, 2)\n+        # Attempted fix, but still applied tax before discount deduction\n+        total = round(subtotal - discount_amount + (subtotal * tax_rate), 2)\n",
+  "files_modified": [
+    "app/orders.py"
+  ],
+  "unit_test_result": {
+    "total": 2,
+    "passed": 1,
+    "failed": 1,
+    "errors": 0,
+    "pass_rate": 0.5,
+    "failures": [
+      "AssertionError: total mismatch"
+    ],
+    "stdout": "pytest ['tests/test_orders.py']: 1 passed, 1 failed",
+    "stderr": ""
+  },
+  "holdout_test_result": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "errors": 0,
+    "pass_rate": 0.0,
+    "failures": [
+      "AssertionError in eval_tests/test_orders_holdout.py"
+    ],
+    "stdout": "holdout evaluation: 0 passed, 1 failed",
+    "stderr": ""
+  },
+  "criteria_results": [
+    {
+      "criterion_id": "AC-02-1",
+      "description": "Discount is subtracted from subtotal instead of added",
+      "passed": false,
+      "score": 0.0,
+      "max_score": 1.5,
+      "reason": "Baseline implementation omitted secondary requirement"
+    },
+    {
+      "criterion_id": "AC-02-2",
+      "description": "Tax is accurately computed on the post-discount subtotal",
+      "passed": false,
+      "score": 0.0,
+      "max_score": 1.0,
+      "reason": "Baseline implementation omitted secondary requirement"
+    },
+    {
+      "criterion_id": "AC-02-3",
+      "description": "Final total equals (subtotal - discount) + tax rounded to 2 decimal places",
+      "passed": false,
+      "score": 0.0,
+      "max_score": 1.0,
+      "reason": "Baseline implementation omitted secondary requirement"
+    }
+  ],
+  "lint_result": {
+    "passed": false,
+    "issues": [
+      "Missing explicit type annotations on public function parameters"
+    ],
+    "violations_count": 1
+  },
+  "runtime_seconds": 15.42,
+  "input_tokens": 3669,
+  "output_tokens": 1107,
+  "total_tokens": 4776,
+  "estimated_cost": 0.0092,
+  "error": "Holdout verification failed",
+  "stdout": "Executed task task-02 with baseline\nTests: 1/2 unit, 0/1 holdout",
+  "stderr": "",
+  "is_mock": true,
+  "seed": 42,
+  "iteration": 1
+}

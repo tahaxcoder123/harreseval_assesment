@@ -1,0 +1,76 @@
+{
+  "task_id": "task-01",
+  "harness_id": "baseline",
+  "status": "FAILED",
+  "generated_changes": "--- a/app/users.py\n+++ b/app/users.py\n@@ -18,2 +18,6 @@\n-    def list_users(self) -> List[Dict[str, Any]]:\n-        return self.db.find_all('users')\n+    def list_users(self, page=1, page_size=None):\n+        users = self.db.find_all('users')\n+        # Partial pagination: fails when page_size is None or out of bounds\n+        start = (page - 1) * page_size if page_size else 0\n+        return users[start:start + page_size] if page_size else users\n",
+  "files_modified": [
+    "app/users.py"
+  ],
+  "unit_test_result": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "errors": 0,
+    "pass_rate": 1.0,
+    "failures": [],
+    "stdout": "pytest ['tests/test_users.py']: 2 passed, 0 failed",
+    "stderr": ""
+  },
+  "holdout_test_result": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "errors": 0,
+    "pass_rate": 0.0,
+    "failures": [
+      "AssertionError in eval_tests/test_pagination_holdout.py"
+    ],
+    "stdout": "holdout evaluation: 0 passed, 1 failed",
+    "stderr": ""
+  },
+  "criteria_results": [
+    {
+      "criterion_id": "AC-01-1",
+      "description": "Supports optional page_size and page parameters in list_users",
+      "passed": true,
+      "score": 1.0,
+      "max_score": 1.0,
+      "reason": "Verified baseline functionality"
+    },
+    {
+      "criterion_id": "AC-01-2",
+      "description": "Returns paginated dictionary payload when page_size is specified",
+      "passed": false,
+      "score": 0.0,
+      "max_score": 1.0,
+      "reason": "Baseline implementation omitted secondary requirement"
+    },
+    {
+      "criterion_id": "AC-01-3",
+      "description": "Preserves backward compatibility: returns list when page_size is None",
+      "passed": false,
+      "score": 0.0,
+      "max_score": 1.0,
+      "reason": "Baseline implementation omitted secondary requirement"
+    }
+  ],
+  "lint_result": {
+    "passed": false,
+    "issues": [
+      "Missing explicit type annotations on public function parameters",
+      "Code style: inconsistent return type (Union without annotation)"
+    ],
+    "violations_count": 2
+  },
+  "runtime_seconds": 16.67,
+  "input_tokens": 3743,
+  "output_tokens": 1128,
+  "total_tokens": 4871,
+  "estimated_cost": 0.00938,
+  "error": "Holdout verification failed",
+  "stdout": "Executed task task-01 with baseline\nTests: 2/2 unit, 0/1 holdout",
+  "stderr": "",
+  "is_mock": true,
+  "seed": 42,
+  "iteration": 1
+}

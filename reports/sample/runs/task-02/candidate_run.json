@@ -1,0 +1,71 @@
+{
+  "task_id": "task-02",
+  "harness_id": "candidate",
+  "status": "SUCCESS",
+  "generated_changes": "--- a/app/orders.py\n+++ b/app/orders.py\n@@ -21,5 +21,4 @@\n         discount_amount = subtotal * discount_rate\n         taxable_amount = max(0.0, subtotal - discount_amount)\n         tax_amount = round(taxable_amount * tax_rate, 2)\n-        total = round(subtotal + discount_amount + tax_amount, 2)\n+        total = round(taxable_amount + tax_amount, 2)\n",
+  "files_modified": [
+    "app/orders.py"
+  ],
+  "unit_test_result": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "errors": 0,
+    "pass_rate": 1.0,
+    "failures": [],
+    "stdout": "pytest ['tests/test_orders.py']: 2 passed, 0 failed",
+    "stderr": ""
+  },
+  "holdout_test_result": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "errors": 0,
+    "pass_rate": 1.0,
+    "failures": [],
+    "stdout": "holdout evaluation: 1 passed, 0 failed",
+    "stderr": ""
+  },
+  "criteria_results": [
+    {
+      "criterion_id": "AC-02-1",
+      "description": "Discount is subtracted from subtotal instead of added",
+      "passed": true,
+      "score": 1.5,
+      "max_score": 1.5,
+      "reason": "Criterion satisfied by candidate implementation"
+    },
+    {
+      "criterion_id": "AC-02-2",
+      "description": "Tax is accurately computed on the post-discount subtotal",
+      "passed": true,
+      "score": 1.0,
+      "max_score": 1.0,
+      "reason": "Criterion satisfied by candidate implementation"
+    },
+    {
+      "criterion_id": "AC-02-3",
+      "description": "Final total equals (subtotal - discount) + tax rounded to 2 decimal places",
+      "passed": true,
+      "score": 1.0,
+      "max_score": 1.0,
+      "reason": "Criterion satisfied by candidate implementation"
+    }
+  ],
+  "lint_result": {
+    "passed": true,
+    "issues": [],
+    "violations_count": 0
+  },
+  "runtime_seconds": 20.23,
+  "input_tokens": 5245,
+  "output_tokens": 1215,
+  "total_tokens": 6460,
+  "estimated_cost": 0.03396,
+  "error": null,
+  "stdout": "Executed task task-02 with candidate\nTests: 2/2 unit, 1/1 holdout",
+  "stderr": "",
+  "is_mock": true,
+  "seed": 42,
+  "iteration": 1
+}

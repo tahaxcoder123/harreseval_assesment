@@ -1,0 +1,166 @@
+{
+  "task_id": "task-02",
+  "title": "Fix order total calculation bug",
+  "baseline_run": {
+    "task_id": "task-02",
+    "harness_id": "baseline",
+    "status": "FAILED",
+    "generated_changes": "--- a/app/orders.py\n+++ b/app/orders.py\n@@ -25,2 +25,3 @@\n-        total = round(subtotal + discount_amount + tax_amount, 2)\n+        # Attempted fix, but still applied tax before discount deduction\n+        total = round(subtotal - discount_amount + (subtotal * tax_rate), 2)\n",
+    "files_modified": [
+      "app/orders.py"
+    ],
+    "unit_test_result": {
+      "total": 2,
+      "passed": 1,
+      "failed": 1,
+      "errors": 0,
+      "pass_rate": 0.5,
+      "failures": [
+        "AssertionError: total mismatch"
+      ],
+      "stdout": "pytest ['tests/test_orders.py']: 1 passed, 1 failed",
+      "stderr": ""
+    },
+    "holdout_test_result": {
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "pass_rate": 0.0,
+      "failures": [
+        "AssertionError in eval_tests/test_orders_holdout.py"
+      ],
+      "stdout": "holdout evaluation: 0 passed, 1 failed",
+      "stderr": ""
+    },
+    "criteria_results": [
+      {
+        "criterion_id": "AC-02-1",
+        "description": "Discount is subtracted from subtotal instead of added",
+        "passed": false,
+        "score": 0.0,
+        "max_score": 1.5,
+        "reason": "Baseline implementation omitted secondary requirement"
+      },
+      {
+        "criterion_id": "AC-02-2",
+        "description": "Tax is accurately computed on the post-discount subtotal",
+        "passed": false,
+        "score": 0.0,
+        "max_score": 1.0,
+        "reason": "Baseline implementation omitted secondary requirement"
+      },
+      {
+        "criterion_id": "AC-02-3",
+        "description": "Final total equals (subtotal - discount) + tax rounded to 2 decimal places",
+        "passed": false,
+        "score": 0.0,
+        "max_score": 1.0,
+        "reason": "Baseline implementation omitted secondary requirement"
+      }
+    ],
+    "lint_result": {
+      "passed": false,
+      "issues": [
+        "Missing explicit type annotations on public function parameters"
+      ],
+      "violations_count": 1
+    },
+    "runtime_seconds": 15.42,
+    "input_tokens": 3669,
+    "output_tokens": 1107,
+    "total_tokens": 4776,
+    "estimated_cost": 0.0092,
+    "error": "Holdout verification failed",
+    "stdout": "Executed task task-02 with baseline\nTests: 1/2 unit, 0/1 holdout",
+    "stderr": "",
+    "is_mock": true,
+    "seed": 42,
+    "iteration": 1
+  },
+  "candidate_run": {
+    "task_id": "task-02",
+    "harness_id": "candidate",
+    "status": "SUCCESS",
+    "generated_changes": "--- a/app/orders.py\n+++ b/app/orders.py\n@@ -21,5 +21,4 @@\n         discount_amount = subtotal * discount_rate\n         taxable_amount = max(0.0, subtotal - discount_amount)\n         tax_amount = round(taxable_amount * tax_rate, 2)\n-        total = round(subtotal + discount_amount + tax_amount, 2)\n+        total = round(taxable_amount + tax_amount, 2)\n",
+    "files_modified": [
+      "app/orders.py"
+    ],
+    "unit_test_result": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "errors": 0,
+      "pass_rate": 1.0,
+      "failures": [],
+      "stdout": "pytest ['tests/test_orders.py']: 2 passed, 0 failed",
+      "stderr": ""
+    },
+    "holdout_test_result": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "errors": 0,
+      "pass_rate": 1.0,
+      "failures": [],
+      "stdout": "holdout evaluation: 1 passed, 0 failed",
+      "stderr": ""
+    },
+    "criteria_results": [
+      {
+        "criterion_id": "AC-02-1",
+        "description": "Discount is subtracted from subtotal instead of added",
+        "passed": true,
+        "score": 1.5,
+        "max_score": 1.5,
+        "reason": "Criterion satisfied by candidate implementation"
+      },
+      {
+        "criterion_id": "AC-02-2",
+        "description": "Tax is accurately computed on the post-discount subtotal",
+        "passed": true,
+        "score": 1.0,
+        "max_score": 1.0,
+        "reason": "Criterion satisfied by candidate implementation"
+      },
+      {
+        "criterion_id": "AC-02-3",
+        "description": "Final total equals (subtotal - discount) + tax rounded to 2 decimal places",
+        "passed": true,
+        "score": 1.0,
+        "max_score": 1.0,
+        "reason": "Criterion satisfied by candidate implementation"
+      }
+    ],
+    "lint_result": {
+      "passed": true,
+      "issues": [],
+      "violations_count": 0
+    },
+    "runtime_seconds": 20.23,
+    "input_tokens": 5245,
+    "output_tokens": 1215,
+    "total_tokens": 6460,
+    "estimated_cost": 0.03396,
+    "error": null,
+    "stdout": "Executed task task-02 with candidate\nTests: 2/2 unit, 1/1 holdout",
+    "stderr": "",
+    "is_mock": true,
+    "seed": 42,
+    "iteration": 1
+  },
+  "outcome": "IMPROVED",
+  "correctness_delta": 0.8,
+  "requirement_delta": 1.0,
+  "lint_delta": -1,
+  "cost_delta": 0.0248,
+  "runtime_delta": 4.81,
+  "explanation": "Candidate resolved task requirements (correctness: 20.0% -> 100.0%).",
+  "evidence_points": [
+    "Baseline unit test failures: ['AssertionError: total mismatch']",
+    "Baseline failed holdout test verification.",
+    "Candidate passed all holdout test assertions.",
+    "Candidate reduced lint issues by 1.",
+    "Cost delta: $+0.0248 (0.0092 -> 0.0340)"
+  ]
+}

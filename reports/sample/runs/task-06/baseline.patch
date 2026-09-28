@@ -1,0 +1,6 @@
+--- a/app/users.py
++++ b/app/users.py
+@@ -10,2 +10,4 @@
++        # Missing length check validation
++        if 'phone_number' in extra:
++            payload['phone_number'] = str(extra['phone_number'])

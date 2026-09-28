@@ -1,0 +1,20 @@
+--- a/app/users.py
++++ b/app/users.py
+@@ -18,2 +18,17 @@
+-    def list_users(self) -> List[Dict[str, Any]]:
+-        return self.db.find_all('users')
++    def list_users(self, page: int = 1, page_size: Optional[int] = None) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
++        all_users = self.db.find_all('users')
++        if page_size is None:
++            return all_users
++        total = len(all_users)
++        total_pages = max(1, (total + page_size - 1) // page_size)
++        start = max(0, (page - 1) * page_size)
++        items = all_users[start:start + page_size]
++        return {
++            'items': items,
++            'total': total,
++            'page': page,
++            'page_size': page_size,
++            'total_pages': total_pages,
++        }

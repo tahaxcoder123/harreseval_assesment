@@ -1,0 +1,7 @@
+--- a/app/users.py
++++ b/app/users.py
+@@ -10,2 +10,5 @@
++        # Case-sensitive check only (misses uppercase duplicate)
++        for u in self.db.find_all('users'):
++            if u.get('email') == email:
++                raise ValueError('Email already registered')

@@ -1,0 +1,10 @@
+--- /dev/null
++++ b/tests/test_auth.py
+@@ -0,0 +1,12 @@
++import pytest
++from app.auth import AuthService
++
++def test_hash_password():
++    svc = AuthService()
++    h = svc.hash_password('secret')
++    assert len(h) == 64

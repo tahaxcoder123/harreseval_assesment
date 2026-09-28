@@ -1,0 +1,22 @@
+--- /dev/null
++++ b/tests/test_auth.py
+@@ -0,0 +1,32 @@
++import pytest
++from app.auth import AuthService
++
++def test_hash_password():
++    svc = AuthService()
++    h1 = svc.hash_password('secret', 'salt1')
++    h2 = svc.hash_password('secret', 'salt2')
++    assert h1 != h2
++
++def test_generate_and_validate_token():
++    svc = AuthService()
++    tok = svc.generate_token('usr-123')
++    assert svc.validate_token(tok) == 'usr-123'
++
++def test_token_expiration_and_revocation():
++    svc = AuthService(token_ttl_seconds=0)
++    tok = svc.generate_token('usr-999')
++    assert svc.validate_token(tok) is None
++    svc.revoke_token(tok)

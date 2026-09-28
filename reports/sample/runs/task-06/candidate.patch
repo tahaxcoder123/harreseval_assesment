@@ -1,0 +1,9 @@
+--- a/app/users.py
++++ b/app/users.py
+@@ -8,2 +8,9 @@
++    def create_user(self, user_id: str, email: str, name: str, phone_number: Optional[str] = None, **extra: Any) -> Dict[str, Any]:
++        if phone_number is not None:
++            cleaned = phone_number.strip()
++            if len(cleaned) < 7 or len(cleaned) > 15:
++                raise ValueError('Invalid phone number format')
++            extra['phone_number'] = cleaned

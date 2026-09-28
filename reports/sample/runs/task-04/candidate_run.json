@@ -1,0 +1,71 @@
+{
+  "task_id": "task-04",
+  "harness_id": "candidate",
+  "status": "SUCCESS",
+  "generated_changes": "--- /dev/null\n+++ b/tests/test_auth.py\n@@ -0,0 +1,32 @@\n+import pytest\n+from app.auth import AuthService\n+\n+def test_hash_password():\n+    svc = AuthService()\n+    h1 = svc.hash_password('secret', 'salt1')\n+    h2 = svc.hash_password('secret', 'salt2')\n+    assert h1 != h2\n+\n+def test_generate_and_validate_token():\n+    svc = AuthService()\n+    tok = svc.generate_token('usr-123')\n+    assert svc.validate_token(tok) == 'usr-123'\n+\n+def test_token_expiration_and_revocation():\n+    svc = AuthService(token_ttl_seconds=0)\n+    tok = svc.generate_token('usr-999')\n+    assert svc.validate_token(tok) is None\n+    svc.revoke_token(tok)\n",
+  "files_modified": [
+    "tests/test_auth.py"
+  ],
+  "unit_test_result": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "errors": 0,
+    "pass_rate": 1.0,
+    "failures": [],
+    "stdout": "pytest ['tests/test_auth.py']: 2 passed, 0 failed",
+    "stderr": ""
+  },
+  "holdout_test_result": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "errors": 0,
+    "pass_rate": 1.0,
+    "failures": [],
+    "stdout": "holdout evaluation: 1 passed, 0 failed",
+    "stderr": ""
+  },
+  "criteria_results": [
+    {
+      "criterion_id": "AC-04-1",
+      "description": "Implements test_hash_password asserting SHA256 behavior",
+      "passed": true,
+      "score": 1.0,
+      "max_score": 1.0,
+      "reason": "Criterion satisfied by candidate implementation"
+    },
+    {
+      "criterion_id": "AC-04-2",
+      "description": "Implements test_generate_and_validate_token",
+      "passed": true,
+      "score": 1.0,
+      "max_score": 1.0,
+      "reason": "Criterion satisfied by candidate implementation"
+    },
+    {
+      "criterion_id": "AC-04-3",
+      "description": "Implements test_token_expiration and test_revoke_token",
+      "passed": true,
+      "score": 1.0,
+      "max_score": 1.0,
+      "reason": "Criterion satisfied by candidate implementation"
+    }
+  ],
+  "lint_result": {
+    "passed": true,
+    "issues": [],
+    "violations_count": 0
+  },
+  "runtime_seconds": 21.08,
+  "input_tokens": 4851,
+  "output_tokens": 1275,
+  "total_tokens": 6126,
+  "estimated_cost": 0.03368,
+  "error": null,
+  "stdout": "Executed task task-04 with candidate\nTests: 2/2 unit, 1/1 holdout",
+  "stderr": "",
+  "is_mock": true,
+  "seed": 42,
+  "iteration": 1
+}

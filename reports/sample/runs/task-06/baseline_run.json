@@ -1,0 +1,75 @@
+{
+  "task_id": "task-06",
+  "harness_id": "baseline",
+  "status": "FAILED",
+  "generated_changes": "--- a/app/users.py\n+++ b/app/users.py\n@@ -10,2 +10,4 @@\n+        # Missing length check validation\n+        if 'phone_number' in extra:\n+            payload['phone_number'] = str(extra['phone_number'])\n",
+  "files_modified": [
+    "app/users.py"
+  ],
+  "unit_test_result": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "errors": 0,
+    "pass_rate": 1.0,
+    "failures": [],
+    "stdout": "pytest ['tests/test_users.py']: 2 passed, 0 failed",
+    "stderr": ""
+  },
+  "holdout_test_result": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "errors": 0,
+    "pass_rate": 0.0,
+    "failures": [
+      "AssertionError in eval_tests/test_phone_field_holdout.py"
+    ],
+    "stdout": "holdout evaluation: 0 passed, 1 failed",
+    "stderr": ""
+  },
+  "criteria_results": [
+    {
+      "criterion_id": "AC-06-1",
+      "description": "Allows optional phone_number keyword parameter",
+      "passed": true,
+      "score": 1.0,
+      "max_score": 1.0,
+      "reason": "Verified baseline functionality"
+    },
+    {
+      "criterion_id": "AC-06-2",
+      "description": "Validates phone number length and format when provided",
+      "passed": false,
+      "score": 0.0,
+      "max_score": 1.0,
+      "reason": "Baseline implementation omitted secondary requirement"
+    },
+    {
+      "criterion_id": "AC-06-3",
+      "description": "Existing calls omitting phone_number continue to succeed unchanged",
+      "passed": false,
+      "score": 0.0,
+      "max_score": 1.0,
+      "reason": "Baseline implementation omitted secondary requirement"
+    }
+  ],
+  "lint_result": {
+    "passed": false,
+    "issues": [
+      "Missing explicit type annotations on public function parameters"
+    ],
+    "violations_count": 1
+  },
+  "runtime_seconds": 16.15,
+  "input_tokens": 3554,
+  "output_tokens": 1156,
+  "total_tokens": 4710,
+  "estimated_cost": 0.00933,
+  "error": "Holdout verification failed",
+  "stdout": "Executed task task-06 with baseline\nTests: 2/2 unit, 0/1 holdout",
+  "stderr": "",
+  "is_mock": true,
+  "seed": 42,
+  "iteration": 1
+}

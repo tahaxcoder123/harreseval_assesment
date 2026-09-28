@@ -1,0 +1,73 @@
+{
+  "task_id": "task-04",
+  "harness_id": "baseline",
+  "status": "FAILED",
+  "generated_changes": "--- /dev/null\n+++ b/tests/test_auth.py\n@@ -0,0 +1,12 @@\n+import pytest\n+from app.auth import AuthService\n+\n+def test_hash_password():\n+    svc = AuthService()\n+    h = svc.hash_password('secret')\n+    assert len(h) == 64\n",
+  "files_modified": [
+    "tests/test_auth.py"
+  ],
+  "unit_test_result": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "errors": 0,
+    "pass_rate": 1.0,
+    "failures": [],
+    "stdout": "pytest ['tests/test_auth.py']: 2 passed, 0 failed",
+    "stderr": ""
+  },
+  "holdout_test_result": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "errors": 0,
+    "pass_rate": 0.0,
+    "failures": [
+      "AssertionError in eval_tests/test_auth_coverage_holdout.py"
+    ],
+    "stdout": "holdout evaluation: 0 passed, 1 failed",
+    "stderr": ""
+  },
+  "criteria_results": [
+    {
+      "criterion_id": "AC-04-1",
+      "description": "Implements test_hash_password asserting SHA256 behavior",
+      "passed": true,
+      "score": 1.0,
+      "max_score": 1.0,
+      "reason": "Verified baseline functionality"
+    },
+    {
+      "criterion_id": "AC-04-2",
+      "description": "Implements test_generate_and_validate_token",
+      "passed": false,
+      "score": 0.0,
+      "max_score": 1.0,
+      "reason": "Baseline implementation omitted secondary requirement"
+    },
+    {
+      "criterion_id": "AC-04-3",
+      "description": "Implements test_token_expiration and test_revoke_token",
+      "passed": false,
+      "score": 0.0,
+      "max_score": 1.0,
+      "reason": "Baseline implementation omitted secondary requirement"
+    }
+  ],
+  "lint_result": {
+    "passed": true,
+    "issues": [],
+    "violations_count": 0
+  },
+  "runtime_seconds": 16.38,
+  "input_tokens": 3530,
+  "output_tokens": 1176,
+  "total_tokens": 4706,
+  "estimated_cost": 0.00941,
+  "error": "Holdout verification failed",
+  "stdout": "Executed task task-04 with baseline\nTests: 2/2 unit, 0/1 holdout",
+  "stderr": "",
+  "is_mock": true,
+  "seed": 42,
+  "iteration": 1
+}

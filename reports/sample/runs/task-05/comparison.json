@@ -1,0 +1,163 @@
+{
+  "task_id": "task-05",
+  "title": "Refactor database helper transaction isolation",
+  "baseline_run": {
+    "task_id": "task-05",
+    "harness_id": "baseline",
+    "status": "FAILED",
+    "generated_changes": "--- a/app/database.py\n+++ b/app/database.py\n@@ -40,2 +40,7 @@\n+    from contextlib import contextmanager\n+    @contextmanager\n+    def transaction(self):\n+        self.begin()\n+        yield self\n+        self.commit()\n",
+    "files_modified": [
+      "app/database.py"
+    ],
+    "unit_test_result": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "errors": 0,
+      "pass_rate": 1.0,
+      "failures": [],
+      "stdout": "pytest ['tests/test_users.py']: 2 passed, 0 failed",
+      "stderr": ""
+    },
+    "holdout_test_result": {
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "pass_rate": 0.0,
+      "failures": [
+        "AssertionError in eval_tests/test_database_refactor_holdout.py"
+      ],
+      "stdout": "holdout evaluation: 0 passed, 1 failed",
+      "stderr": ""
+    },
+    "criteria_results": [
+      {
+        "criterion_id": "AC-05-1",
+        "description": "Provides contextlib.contextmanager or __enter__/__exit__ transaction helper",
+        "passed": true,
+        "score": 1.0,
+        "max_score": 1.0,
+        "reason": "Verified baseline functionality"
+      },
+      {
+        "criterion_id": "AC-05-2",
+        "description": "Rolls back changes automatically if an exception is raised inside the context",
+        "passed": false,
+        "score": 0.0,
+        "max_score": 1.5,
+        "reason": "Baseline implementation omitted secondary requirement"
+      },
+      {
+        "criterion_id": "AC-05-3",
+        "description": "Existing begin/commit/rollback methods continue to work without breaking changes",
+        "passed": false,
+        "score": 0.0,
+        "max_score": 1.0,
+        "reason": "Baseline implementation omitted secondary requirement"
+      }
+    ],
+    "lint_result": {
+      "passed": false,
+      "issues": [
+        "Missing explicit type annotations on public function parameters"
+      ],
+      "violations_count": 1
+    },
+    "runtime_seconds": 14.72,
+    "input_tokens": 3240,
+    "output_tokens": 1194,
+    "total_tokens": 4434,
+    "estimated_cost": 0.00921,
+    "error": "Holdout verification failed",
+    "stdout": "Executed task task-05 with baseline\nTests: 2/2 unit, 0/1 holdout",
+    "stderr": "",
+    "is_mock": true,
+    "seed": 42,
+    "iteration": 1
+  },
+  "candidate_run": {
+    "task_id": "task-05",
+    "harness_id": "candidate",
+    "status": "SUCCESS",
+    "generated_changes": "--- a/app/database.py\n+++ b/app/database.py\n@@ -40,2 +40,13 @@\n+    from contextlib import contextmanager\n+    @contextmanager\n+    def transaction(self):\n+        self.begin()\n+        try:\n+            yield self\n+            self.commit()\n+        except Exception:\n+            self.rollback()\n+            raise\n",
+    "files_modified": [
+      "app/database.py"
+    ],
+    "unit_test_result": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "errors": 0,
+      "pass_rate": 1.0,
+      "failures": [],
+      "stdout": "pytest ['tests/test_users.py']: 2 passed, 0 failed",
+      "stderr": ""
+    },
+    "holdout_test_result": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "errors": 0,
+      "pass_rate": 1.0,
+      "failures": [],
+      "stdout": "holdout evaluation: 1 passed, 0 failed",
+      "stderr": ""
+    },
+    "criteria_results": [
+      {
+        "criterion_id": "AC-05-1",
+        "description": "Provides contextlib.contextmanager or __enter__/__exit__ transaction helper",
+        "passed": true,
+        "score": 1.0,
+        "max_score": 1.0,
+        "reason": "Criterion satisfied by candidate implementation"
+      },
+      {
+        "criterion_id": "AC-05-2",
+        "description": "Rolls back changes automatically if an exception is raised inside the context",
+        "passed": true,
+        "score": 1.5,
+        "max_score": 1.5,
+        "reason": "Criterion satisfied by candidate implementation"
+      },
+      {
+        "criterion_id": "AC-05-3",
+        "description": "Existing begin/commit/rollback methods continue to work without breaking changes",
+        "passed": true,
+        "score": 1.0,
+        "max_score": 1.0,
+        "reason": "Criterion satisfied by candidate implementation"
+      }
+    ],
+    "lint_result": {
+      "passed": true,
+      "issues": [],
+      "violations_count": 0
+    },
+    "runtime_seconds": 21.8,
+    "input_tokens": 4605,
+    "output_tokens": 1240,
+    "total_tokens": 5845,
+    "estimated_cost": 0.03241,
+    "error": null,
+    "stdout": "Executed task task-05 with candidate\nTests: 2/2 unit, 1/1 holdout",
+    "stderr": "",
+    "is_mock": true,
+    "seed": 42,
+    "iteration": 1
+  },
+  "outcome": "IMPROVED",
+  "correctness_delta": 0.6,
+  "requirement_delta": 0.7143,
+  "lint_delta": -1,
+  "cost_delta": 0.0232,
+  "runtime_delta": 7.08,
+  "explanation": "Candidate resolved task requirements (correctness: 40.0% -> 100.0%).",
+  "evidence_points": [
+    "Baseline failed holdout test verification.",
+    "Candidate passed all holdout test assertions.",
+    "Candidate reduced lint issues by 1.",
+    "Cost delta: $+0.0232 (0.0092 -> 0.0324)"
+  ]
+}

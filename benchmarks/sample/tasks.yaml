@@ -1,0 +1,174 @@
+benchmark_name: sample_project_benchmark
+version: "1.0.0"
+project_path: sample_project
+tasks:
+  - id: task-01
+    title: Add pagination to users API
+    description: |
+      Update UserService.list_users in app/users.py to support optional pagination.
+      Accept optional `page: int = 1` and `page_size: Optional[int] = None`.
+      When page_size is provided, return a dict with:
+      {"items": [...], "total": count, "page": page, "page_size": page_size, "total_pages": pages}.
+      When page_size is None or omitted, maintain backward compatibility by returning the plain List[Dict[str, Any]].
+    target_files:
+      - app/users.py
+    acceptance_criteria:
+      - id: AC-01-1
+        description: "Supports optional page_size and page parameters in list_users"
+        weight: 1.0
+      - id: AC-01-2
+        description: "Returns paginated dictionary payload when page_size is specified"
+        weight: 1.0
+      - id: AC-01-3
+        description: "Preserves backward compatibility: returns list when page_size is None"
+        weight: 1.0
+    evaluation:
+      unit_tests:
+        - "tests/test_users.py"
+      holdout_tests:
+        - "eval_tests/test_pagination_holdout.py"
+      lint_checks:
+        require_type_hints: true
+        forbidden_patterns:
+          - "TODO"
+          - "pass"
+      timeout_seconds: 30
+
+  - id: task-02
+    title: Fix order total calculation bug
+    description: |
+      In app/orders.py, OrderService.calculate_total contains a calculation error.
+      The discount amount is erroneously added instead of subtracted from subtotal,
+      resulting in customers being charged more when discounts apply.
+      Fix this bug so that:
+      - discount is subtracted from subtotal before tax calculation
+      - tax is applied to (subtotal - discount)
+      - total = round((subtotal - discount) + tax, 2)
+    target_files:
+      - app/orders.py
+    acceptance_criteria:
+      - id: AC-02-1
+        description: "Discount is subtracted from subtotal instead of added"
+        weight: 1.5
+      - id: AC-02-2
+        description: "Tax is accurately computed on the post-discount subtotal"
+        weight: 1.0
+      - id: AC-02-3
+        description: "Final total equals (subtotal - discount) + tax rounded to 2 decimal places"
+        weight: 1.0
+    evaluation:
+      unit_tests:
+        - "tests/test_orders.py"
+      holdout_tests:
+        - "eval_tests/test_orders_holdout.py"
+      lint_checks:
+        require_type_hints: true
+      timeout_seconds: 30
+
+  - id: task-03
+    title: Add duplicate email validation
+    description: |
+      In app/users.py, UserService.create_user should validate that an email address
+      is not already registered by any active user. If the email already exists,
+      raise a ValueError("Email already registered").
+    target_files:
+      - app/users.py
+    acceptance_criteria:
+      - id: AC-03-1
+        description: "Raises ValueError with 'Email already registered' on duplicate email"
+        weight: 1.5
+      - id: AC-03-2
+        description: "Email comparison is case-insensitive"
+        weight: 1.0
+    evaluation:
+      unit_tests:
+        - "tests/test_users.py"
+      holdout_tests:
+        - "eval_tests/test_duplicate_email_holdout.py"
+      lint_checks:
+        require_type_hints: true
+      timeout_seconds: 30
+
+  - id: task-04
+    title: Add unit tests for authentication service
+    description: |
+      In tests/test_auth.py, add a comprehensive test suite for AuthService covering:
+      - Password hashing (different salts/passwords produce distinct SHA256 hashes)
+      - Token generation, storage, and retrieval
+      - Expired token validation (returns None)
+      - Revocation of active tokens
+    target_files:
+      - tests/test_auth.py
+    acceptance_criteria:
+      - id: AC-04-1
+        description: "Implements test_hash_password asserting SHA256 behavior"
+        weight: 1.0
+      - id: AC-04-2
+        description: "Implements test_generate_and_validate_token"
+        weight: 1.0
+      - id: AC-04-3
+        description: "Implements test_token_expiration and test_revoke_token"
+        weight: 1.0
+    evaluation:
+      unit_tests:
+        - "tests/test_auth.py"
+      holdout_tests:
+        - "eval_tests/test_auth_coverage_holdout.py"
+      lint_checks:
+        require_type_hints: false
+      timeout_seconds: 30
+
+  - id: task-05
+    title: Refactor database helper transaction isolation
+    description: |
+      Refactor Database.begin(), commit(), and rollback() in app/database.py
+      to use a context manager `transaction()` allowing `with db.transaction(): ...`.
+      Ensure backward compatibility with manual begin()/commit()/rollback() calls.
+    target_files:
+      - app/database.py
+    acceptance_criteria:
+      - id: AC-05-1
+        description: "Provides contextlib.contextmanager or __enter__/__exit__ transaction helper"
+        weight: 1.0
+      - id: AC-05-2
+        description: "Rolls back changes automatically if an exception is raised inside the context"
+        weight: 1.5
+      - id: AC-05-3
+        description: "Existing begin/commit/rollback methods continue to work without breaking changes"
+        weight: 1.0
+    evaluation:
+      unit_tests:
+        - "tests/test_users.py"
+      holdout_tests:
+        - "eval_tests/test_database_refactor_holdout.py"
+      lint_checks:
+        require_type_hints: true
+      timeout_seconds: 30
+
+  - id: task-06
+    title: Add phone_number field preserving backward compatibility
+    description: |
+      Add an optional `phone_number: Optional[str] = None` field to UserService.create_user.
+      Validate that if provided, it contains between 7 and 15 digits or characters.
+      If invalid, raise ValueError("Invalid phone number format").
+      Ensure existing calls without phone_number continue to succeed seamlessly.
+    target_files:
+      - app/users.py
+    acceptance_criteria:
+      - id: AC-06-1
+        description: "Allows optional phone_number keyword parameter"
+        weight: 1.0
+      - id: AC-06-2
+        description: "Validates phone number length and format when provided"
+        weight: 1.0
+      - id: AC-06-3
+        description: "Existing calls omitting phone_number continue to succeed unchanged"
+        weight: 1.0
+    evaluation:
+      unit_tests:
+        - "tests/test_users.py"
+      holdout_tests:
+        - "eval_tests/test_phone_field_holdout.py"
+      lint_checks:
+        require_type_hints: true
+      timeout_seconds: 30

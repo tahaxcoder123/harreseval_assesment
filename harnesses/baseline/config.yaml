@@ -1,0 +1,16 @@
+name: baseline
+version: "1.0.0"
+description: "Standard agent harness with general coding prompt and basic tools"
+model: "claude-3-5-haiku-20241022"
+temperature: 0.2
+max_iterations: 5
+system_prompt: "prompts/system_prompt.txt"
+agents_file: "AGENTS.md"
+skills:
+  - "skills/basic-python.md"
+tools:
+  - "filesystem"
+  - "git"
+hooks: []
+cost_per_1k_input: 0.001
+cost_per_1k_output: 0.005

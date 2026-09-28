@@ -1,0 +1,7 @@
+--- a/app/users.py
++++ b/app/users.py
+@@ -10,2 +10,6 @@
++        normalized_email = email.strip().lower()
++        for u in self.db.find_all('users'):
++            if str(u.get('email', '')).lower() == normalized_email:
++                raise ValueError('Email already registered')

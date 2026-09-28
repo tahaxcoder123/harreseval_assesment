@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coding Agent Harness Evaluation Report</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --accent: #818cf8;
+      --code-bg: #0b1120;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem 1.5rem;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header { margin-bottom: 2rem; border-bottom: 1px solid var(--card-border); padding-bottom: 1.5rem; }
+    h1 { font-size: 2rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.75rem; }
+    .meta-bar { display: flex; flex-wrap: wrap; gap: 1.5rem; color: var(--text-muted); font-size: 0.9rem; }
+    .badge {
+      display: inline-block; padding: 0.25rem 0.6rem; border-radius: 9999px;
+      font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+    }
+    .badge-positive { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+    .badge-negative { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+    .badge-inconclusive { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+    
+    /* Decision Banner */
+    .decision-banner {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      border-left: 6px solid var(--warning);
+    }
+    .decision-banner.POSITIVE { border-left-color: var(--success); }
+    .decision-banner.NEGATIVE { border-left-color: var(--danger); }
+    .decision-banner.INCONCLUSIVE { border-left-color: var(--warning); }
+    .decision-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.75rem; }
+    .decision-reason { color: #e2e8f0; font-size: 1.05rem; margin-bottom: 1rem; }
+    .tradeoffs-list { margin-left: 1.5rem; color: #cbd5e1; font-size: 0.95rem; }
+    .tradeoffs-list li { margin-bottom: 0.25rem; }
+
+    /* Section Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .card-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--primary); }
+
+    /* Metric Grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .metric-box {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .metric-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.35rem; }
+    .metric-value { font-size: 1.5rem; font-weight: 700; }
+    .metric-delta { font-size: 0.85rem; font-weight: 600; margin-top: 0.25rem; }
+    .delta-pos { color: var(--success); }
+    .delta-neg { color: var(--danger); }
+    .delta-neutral { color: var(--text-muted); }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.95rem; }
+    th { text-align: left; padding: 0.75rem 1rem; background: rgba(15, 23, 42, 0.8); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+    td { padding: 0.75rem 1rem; border-top: 1px solid var(--card-border); }
+    tr:hover td { background: rgba(51, 65, 85, 0.3); }
+
+    /* Tasks Accordion */
+    details {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    summary {
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      background: rgba(30, 41, 59, 0.4);
+    }
+    summary:hover { background: rgba(51, 65, 85, 0.4); }
+    .task-details { padding: 1.25rem; border-top: 1px solid var(--card-border); }
+    .diff-box {
+      background: var(--code-bg);
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 1rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      white-space: pre;
+      margin-top: 0.5rem;
+      color: #e2e8f0;
+    }
+    .diff-add { color: #86efac; }
+    .diff-rem { color: #fca5a5; }
+    .evidence-tag { display: inline-block; background: #334155; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; margin: 0.2rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Coding Agent Harness Evaluation</h1>
+      <div class="meta-bar">
+        <span><strong>Generated:</strong> 2026-09-26T06:59:05.548948+00:00</span>
+        <span><strong>Benchmark:</strong> sample_project_benchmark (v1.0.0)</span>
+        <span><strong>Repetitions:</strong> 1</span>
+        <span><strong>Runner:</strong> mock</span>
+        <span><strong>Tool Version:</strong> v0.1.0</span>
+      </div>
+    </header>
+
+    <!-- Decision Banner -->
+    <div class="decision-banner INCONCLUSIVE">
+      <div class="decision-title">
+        <span class="badge badge-inconclusive">INCONCLUSIVE</span>
+        <span>Promising correctness gain, but inconclusive due to resource trade-offs or sample size.</span>
+      </div>
+      <p class="decision-reason">Candidate improved correctness by +63.3 percentage points (36.7% -> 100.0%) and had 0 regressions. However, the verdict is INCONCLUSIVE due to higher operational cost (+260.4%), and limited sample size (N=6). Engineering teams should verify whether the accuracy gain justifies the added resource cost.</p>
+      
+      <div style="font-weight: 600; margin-bottom: 0.5rem; color: #f1f5f9;">Identified Trade-offs & Limitations:</div>
+      <ul class="tradeoffs-list">
+        
+        <li>Cost increased by +260.4% ($0.0091 -> $0.0328/task).</li>
+        
+        <li>Sample size (N=6) is below threshold of 10 tasks for statistical certainty.</li>
+        
+      </ul>
+      
+      
+      <p style="margin-top: 0.75rem; font-size: 0.85rem; color: #94a3b8;">
+        <strong>Statistical Reliability:</strong> Sample size (N=6, 6 tasks x 1 reps) is too small to establish formal statistical significance. Observed differences are directional.
+      </p>
+      
+    </div>
+
+    <!-- Harness Diff Card -->
+    <div class="card">
+      <div class="card-title">Harness Configuration Delta</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div style="padding: 1rem; background: rgba(15,23,42,0.4); border-radius: 8px;">
+          <h4 style="color: #cbd5e1; margin-bottom: 0.5rem;">Baseline: baseline</h4>
+          <p style="font-size: 0.9rem; color: #94a3b8;"><strong>Model:</strong> claude-3-5-haiku-20241022</p>
+        </div>
+        <div style="padding: 1rem; background: rgba(15,23,42,0.4); border-radius: 8px;">
+          <h4 style="color: #cbd5e1; margin-bottom: 0.5rem;">Candidate: candidate</h4>
+          <p style="font-size: 0.9rem; color: #94a3b8;"><strong>Model:</strong> claude-3-5-sonnet-20241022</p>
+          
+          <p style="font-size: 0.9rem; color: var(--success); margin-top: 0.25rem;"><strong>Skills Added:</strong> skills/python-testing.md, skills/strict-typing.md</p>
+          
+          
+          <p style="font-size: 0.9rem; color: var(--success); margin-top: 0.25rem;"><strong>Hooks Added:</strong> hooks/pre_commit_lint.sh</p>
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- Metrics Overview -->
+    <div class="card">
+      <div class="card-title">Multi-Dimensional Comparison</div>
+      <div class="metric-grid">
+        
+        <div class="metric-box">
+          <div class="metric-label">Correctness Rate</div>
+          <div class="metric-value">
+            
+              100.0%
+            
+          </div>
+          <div class="metric-delta delta-pos">
+            
+              63.3pp (from 36.7%)
+            
+          </div>
+        </div>
+        
+        <div class="metric-box">
+          <div class="metric-label">Requirement Satisfaction</div>
+          <div class="metric-value">
+            
+              100.0%
+            
+          </div>
+          <div class="metric-delta delta-pos">
+            
+              68.6pp (from 31.4%)
+            
+          </div>
+        </div>
+        
+        <div class="metric-box">
+          <div class="metric-label">Convention Compliance</div>
+          <div class="metric-value">
+            
+              100.0%
+            
+          </div>
+          <div class="metric-delta delta-pos">
+            
+              25.0pp (from 75.0%)
+            
+          </div>
+        </div>
+        
+        <div class="metric-box">
+          <div class="metric-label">Pass Rate</div>
+          <div class="metric-value">
+            
+              100.0%
+            
+          </div>
+          <div class="metric-delta delta-pos">
+            
+              100.0pp (from 0.0%)
+            
+          </div>
+        </div>
+        
+        <div class="metric-box">
+          <div class="metric-label">Average Cost ($)</div>
+          <div class="metric-value">
+            
+              $0.0328
+            
+          </div>
+          <div class="metric-delta delta-neg">
+            
+              +$0.0237 (260.44%)
+            
+          </div>
+        </div>
+        
+        <div class="metric-box">
+          <div class="metric-label">Average Runtime (s)</div>
+          <div class="metric-value">
+            
+              20.8s
+            
+          </div>
+          <div class="metric-delta delta-neg">
+            
+              4.7s (29.55%)
+            
+          </div>
+        </div>
+        
+        <div class="metric-box">
+          <div class="metric-label">Total Tokens</div>
+          <div class="metric-value">
+            
+              36799
+            
+          </div>
+          <div class="metric-delta delta-neg">
+            
+              9015
+            
+          </div>
+        </div>
+        
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Baseline</th>
+            <th>Candidate</th>
+            <th>Absolute Delta</th>
+            <th>Relative Delta</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td><strong>Correctness Rate</strong></td>
+            <td>
+              
+                36.7%
+              
+            </td>
+            <td>
+              
+                100.0%
+              
+            </td>
+            <td style="font-weight: 600; color: var(--success)">
+              
+                63.3pp
+              
+            </td>
+            <td>172.7%</td>
+          </tr>
+          
+          <tr>
+            <td><strong>Requirement Satisfaction</strong></td>
+            <td>
+              
+                31.4%
+              
+            </td>
+            <td>
+              
+                100.0%
+              
+            </td>
+            <td style="font-weight: 600; color: var(--success)">
+              
+                68.6pp
+              
+            </td>
+            <td>218.17%</td>
+          </tr>
+          
+          <tr>
+            <td><strong>Convention Compliance</strong></td>
+            <td>
+              
+                75.0%
+              
+            </td>
+            <td>
+              
+                100.0%
+              
+            </td>
+            <td style="font-weight: 600; color: var(--success)">
+              
+                25.0pp
+              
+            </td>
+            <td>33.33%</td>
+          </tr>
+          
+          <tr>
+            <td><strong>Pass Rate</strong></td>
+            <td>
+              
+                0.0%
+              
+            </td>
+            <td>
+              
+                100.0%
+              
+            </td>
+            <td style="font-weight: 600; color: var(--success)">
+              
+                100.0pp
+              
+            </td>
+            <td>0.0%</td>
+          </tr>
+          
+          <tr>
+            <td><strong>Average Cost ($)</strong></td>
+            <td>
+              
+                $0.0091
+              
+            </td>
+            <td>
+              
+                $0.0328
+              
+            </td>
+            <td style="font-weight: 600; color: var(--danger)">
+              
+                $0.0237
+              
+            </td>
+            <td>260.44%</td>
+          </tr>
+          
+          <tr>
+            <td><strong>Average Runtime (s)</strong></td>
+            <td>
+              
+                16.0s
+              
+            </td>
+            <td>
+              
+                20.8s
+              
+            </td>
+            <td style="font-weight: 600; color: var(--danger)">
+              
+                4.7s
+              
+            </td>
+            <td>29.55%</td>
+          </tr>
+          
+          <tr>
+            <td><strong>Total Tokens</strong></td>
+            <td>
+              
+                27784
+              
+            </td>
+            <td>
+              
+                36799
+              
+            </td>
+            <td style="font-weight: 600; color: var(--danger)">
+              
+                9015
+              
+            </td>
+            <td>32.45%</td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Per-Task Evidence -->
+    <div class="card">
+      <div class="card-title">Per-Task Evidence & Artifacts</div>
+      
+      <details>
+        <summary>
+          <span><strong>task-01</strong>: Add pagination to users API</span>
+          <span>
+            <span class="badge badge-positive">
+              IMPROVED
+            </span>
+          </span>
+        </summary>
+        <div class="task-details">
+          <p style="margin-bottom: 0.75rem;"><strong>Analysis:</strong> Candidate resolved task requirements (correctness: 40.0% -> 100.0%).</p>
+          
+          <div style="margin-bottom: 1rem;">
+            <strong>Evidence Points:</strong>
+            <ul style="margin-left: 1.5rem; margin-top: 0.25rem;">
+              
+              <li>Baseline failed holdout test verification.</li>
+              
+              <li>Candidate passed all holdout test assertions.</li>
+              
+              <li>Candidate reduced lint issues by 2.</li>
+              
+              <li>Cost delta: $+0.0246 (0.0094 -> 0.0339)</li>
+              
+            </ul>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+            <div>
+              <h5 style="color: var(--warning); margin-bottom: 0.25rem;">Baseline Run (FAILED)</h5>
+              <div style="font-size: 0.85rem; color: #cbd5e1;">
+                Tests: 2/2 unit,
+                0/1 holdout |
+                Cost: $0.00938 |
+                Time: 16.67s
+              </div>
+              <div class="diff-box">--- a/app/users.py
++++ b/app/users.py
+@@ -18,2 +18,6 @@
+-    def list_users(self) -> List[Dict[str, Any]]:
+-        return self.db.find_all('users')
++    def list_users(self, page=1, page_size=None):
++        users = self.db.find_all('users')
++        # Partial pagination: fails when page_size is None or out of bounds
++        start = (page - 1) * page_size if page_size else 0
++        return users[start:start + page_size] if page_size else users
+</div>
+            </div>
+            <div>
+              <h5 style="color: var(--success); margin-bottom: 0.25rem;">Candidate Run (SUCCESS)</h5>
+              <div style="font-size: 0.85rem; color: #cbd5e1;">
+                Tests: 2/2 unit,
+                1/1 holdout |
+                Cost: $0.03393 |
+                Time: 20.19s
+              </div>
+              <div class="diff-box">--- a/app/users.py
++++ b/app/users.py
+@@ -18,2 +18,17 @@
+-    def list_users(self) -> List[Dict[str, Any]]:
+-        return self.db.find_all('users')
++    def list_users(self, page: int = 1, page_size: Optional[int] = None) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
++        all_users = self.db.find_all('users')
++        if page_size is None:
++            return all_users
++        total = len(all_users)
++        total_pages = max(1, (total + page_size - 1) // page_size)
++        start = max(0, (page - 1) * page_size)
++        items = all_users[start:start + page_size]
++        return {
++            'items': items,
++            'total': total,
++            'page': page,
++            'page_size': page_size,
++            'total_pages': total_pages,
++        }
+</div>
+            </div>
+          </div>
+        </div>
+      </details>
+      
+      <details>
+        <summary>
+          <span><strong>task-02</strong>: Fix order total calculation bug</span>
+          <span>
+            <span class="badge badge-positive">
+              IMPROVED
+            </span>
+          </span>
+        </summary>
+        <div class="task-details">
+          <p style="margin-bottom: 0.75rem;"><strong>Analysis:</strong> Candidate resolved task requirements (correctness: 20.0% -> 100.0%).</p>
+          
+          <div style="margin-bottom: 1rem;">
+            <strong>Evidence Points:</strong>
+            <ul style="margin-left: 1.5rem; margin-top: 0.25rem;">
+              
+              <li>Baseline unit test failures: ['AssertionError: total mismatch']</li>
+              
+              <li>Baseline failed holdout test verification.</li>
+              
+              <li>Candidate passed all holdout test assertions.</li>
+              
+              <li>Candidate reduced lint issues by 1.</li>
+              
+              <li>Cost delta: $+0.0248 (0.0092 -> 0.0340)</li>
+              
+            </ul>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+            <div>
+              <h5 style="color: var(--warning); margin-bottom: 0.25rem;">Baseline Run (FAILED)</h5>
+              <div style="font-size: 0.85rem; color: #cbd5e1;">
+                Tests: 1/2 unit,
+                0/1 holdout |
+                Cost: $0.0092 |
+                Time: 15.42s
+              </div>
+              <div class="diff-box">--- a/app/orders.py
++++ b/app/orders.py
+@@ -25,2 +25,3 @@
+-        total = round(subtotal + discount_amount + tax_amount, 2)
++        # Attempted fix, but still applied tax before discount deduction
++        total = round(subtotal - discount_amount + (subtotal * tax_rate), 2)
+</div>
+            </div>
+            <div>
+              <h5 style="color: var(--success); margin-bottom: 0.25rem;">Candidate Run (SUCCESS)</h5>
+              <div style="font-size: 0.85rem; color: #cbd5e1;">
+                Tests: 2/2 unit,
+                1/1 holdout |
+                Cost: $0.03396 |
+                Time: 20.23s
+              </div>
+              <div class="diff-box">--- a/app/orders.py
++++ b/app/orders.py
+@@ -21,5 +21,4 @@
+         discount_amount = subtotal * discount_rate
+         taxable_amount = max(0.0, subtotal - discount_amount)
+         tax_amount = round(taxable_amount * tax_rate, 2)
+-        total = round(subtotal + discount_amount + tax_amount, 2)
++        total = round(taxable_amount + tax_amount, 2)
+</div>
+            </div>
+          </div>
+        </div>
+      </details>
+      
+      <details>
+        <summary>
+          <span><strong>task-03</strong>: Add duplicate email validation</span>
+          <span>
+            <span class="badge badge-positive">
+              IMPROVED
+            </span>
+          </span>
+        </summary>
+        <div class="task-details">
+          <p style="margin-bottom: 0.75rem;"><strong>Analysis:</strong> Candidate resolved task requirements (correctness: 40.0% -> 100.0%).</p>
+          
+          <div style="margin-bottom: 1rem;">
+            <strong>Evidence Points:</strong>
+            <ul style="margin-left: 1.5rem; margin-top: 0.25rem;">
+              
+              <li>Baseline failed holdout test verification.</li>
+              
+              <li>Candidate passed all holdout test assertions.</li>
+              
+              <li>Candidate reduced lint issues by 1.</li>
+              
+              <li>Cost delta: $+0.0210 (0.0080 -> 0.0290)</li>
+              
+            </ul>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+            <div>
+              <h5 style="color: var(--warning); margin-bottom: 0.25rem;">Baseline Run (FAILED)</h5>
+              <div style="font-size: 0.85rem; color: #cbd5e1;">
+                Tests: 2/2 unit,
+                0/1 holdout |
+                Cost: $0.00796 |
+                Time: 16.87s
+              </div>
+              <div class="diff-box">--- a/app/users.py
++++ b/app/users.py
+@@ -10,2 +10,5 @@
++        # Case-sensitive check only (misses uppercase duplicate)
++        for u in self.db.find_all('users'):
++            if u.get('email') == email:
++                raise ValueError('Email already registered')
+</div>
+            </div>
+            <div>
+              <h5 style="color: var(--success); margin-bottom: 0.25rem;">Candidate Run (SUCCESS)</h5>
+              <div style="font-size: 0.85rem; color: #cbd5e1;">
+                Tests: 2/2 unit,
+                1/1 holdout |
+                Cost: $0.02899 |
+                Time: 21.9s
+              </div>
+              <div class="diff-box">--- a/app/users.py
++++ b/app/users.py
+@@ -10,2 +10,6 @@
++        normalized_email = email.strip().lower()
++        for u in self.db.find_all('users'):
++            if str(u.get('email', '')).lower() == normalized_email:
++                raise ValueError('Email already registered')
+</div>
+            </div>
+          </div>
+        </div>
+      </details>
+      
+      <details>
+        <summary>
+          <span><strong>task-04</strong>: Add unit tests for authentication service</span>
+          <span>
+            <span class="badge badge-positive">
+              IMPROVED
+            </span>
+          </span>
+        </summary>
+        <div class="task-details">
+          <p style="margin-bottom: 0.75rem;"><strong>Analysis:</strong> Candidate resolved task requirements (correctness: 40.0% -> 100.0%).</p>
+          
+          <div style="margin-bottom: 1rem;">
+            <strong>Evidence Points:</strong>
+            <ul style="margin-left: 1.5rem; margin-top: 0.25rem;">
+              
+              <li>Baseline failed holdout test verification.</li>
+              
+              <li>Candidate passed all holdout test assertions.</li>
+              
+              <li>Cost delta: $+0.0243 (0.0094 -> 0.0337)</li>
+              
+            </ul>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+            <div>
+              <h5 style="color: var(--warning); margin-bottom: 0.25rem;">Baseline Run (FAILED)</h5>
+              <div style="font-size: 0.85rem; color: #cbd5e1;">
+                Tests: 2/2 unit,
+                0/1 holdout |
+                Cost: $0.00941 |
+                Time: 16.38s
+              </div>
+              <div class="diff-box">--- /dev/null
++++ b/tests/test_auth.py
+@@ -0,0 +1,12 @@
++import pytest
++from app.auth import AuthService
++
++def test_hash_password():
++    svc = AuthService()
++    h = svc.hash_password('secret')
++    assert len(h) == 64
+</div>
+            </div>
+            <div>
+              <h5 style="color: var(--success); margin-bottom: 0.25rem;">Candidate Run (SUCCESS)</h5>
+              <div style="font-size: 0.85rem; color: #cbd5e1;">
+                Tests: 2/2 unit,
+                1/1 holdout |
+                Cost: $0.03368 |
+                Time: 21.08s
+              </div>
+              <div class="diff-box">--- /dev/null
++++ b/tests/test_auth.py
+@@ -0,0 +1,32 @@
++import pytest
++from app.auth import AuthService
++
++def test_hash_password():
++    svc = AuthService()
++    h1 = svc.hash_password('secret', 'salt1')
++    h2 = svc.hash_password('secret', 'salt2')
++    assert h1 != h2
++
++def test_generate_and_validate_token():
++    svc = AuthService()
++    tok = svc.generate_token('usr-123')
++    assert svc.validate_token(tok) == 'usr-123'
++
++def test_token_expiration_and_revocation():
++    svc = AuthService(token_ttl_seconds=0)
++    tok = svc.generate_token('usr-999')
++    assert svc.validate_token(tok) is None
++    svc.revoke_token(tok)
+</div>
+            </div>
+          </div>
+        </div>
+      </details>
+      
+      <details>
+        <summary>
+          <span><strong>task-05</strong>: Refactor database helper transaction isolation</span>
+          <span>
+            <span class="badge badge-positive">
+              IMPROVED
+            </span>
+          </span>
+        </summary>
+        <div class="task-details">
+          <p style="margin-bottom: 0.75rem;"><strong>Analysis:</strong> Candidate resolved task requirements (correctness: 40.0% -> 100.0%).</p>
+          
+          <div style="margin-bottom: 1rem;">
+            <strong>Evidence Points:</strong>
+            <ul style="margin-left: 1.5rem; margin-top: 0.25rem;">
+              
+              <li>Baseline failed holdout test verification.</li>
+              
+              <li>Candidate passed all holdout test assertions.</li>
+              
+              <li>Candidate reduced lint issues by 1.</li>
+              
+              <li>Cost delta: $+0.0232 (0.0092 -> 0.0324)</li>
+              
+            </ul>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+            <div>
+              <h5 style="color: var(--warning); margin-bottom: 0.25rem;">Baseline Run (FAILED)</h5>
+              <div style="font-size: 0.85rem; color: #cbd5e1;">
+                Tests: 2/2 unit,
+                0/1 holdout |
+                Cost: $0.00921 |
+                Time: 14.72s
+              </div>
+              <div class="diff-box">--- a/app/database.py
++++ b/app/database.py
+@@ -40,2 +40,7 @@
++    from contextlib import contextmanager
++    @contextmanager
++    def transaction(self):
++        self.begin()
++        yield self
++        self.commit()
+</div>
+            </div>
+            <div>
+              <h5 style="color: var(--success); margin-bottom: 0.25rem;">Candidate Run (SUCCESS)</h5>
+              <div style="font-size: 0.85rem; color: #cbd5e1;">
+                Tests: 2/2 unit,
+                1/1 holdout |
+                Cost: $0.03241 |
+                Time: 21.8s
+              </div>
+              <div class="diff-box">--- a/app/database.py
++++ b/app/database.py
+@@ -40,2 +40,13 @@
++    from contextlib import contextmanager
++    @contextmanager
++    def transaction(self):
++        self.begin()
++        try:
++            yield self
++            self.commit()
++        except Exception:
++            self.rollback()
++            raise
+</div>
+            </div>
+          </div>
+        </div>
+      </details>
+      
+      <details>
+        <summary>
+          <span><strong>task-06</strong>: Add phone_number field preserving backward compatibility</span>
+          <span>
+            <span class="badge badge-positive">
+              IMPROVED
+            </span>
+          </span>
+        </summary>
+        <div class="task-details">
+          <p style="margin-bottom: 0.75rem;"><strong>Analysis:</strong> Candidate resolved task requirements (correctness: 40.0% -> 100.0%).</p>
+          
+          <div style="margin-bottom: 1rem;">
+            <strong>Evidence Points:</strong>
+            <ul style="margin-left: 1.5rem; margin-top: 0.25rem;">
+              
+              <li>Baseline failed holdout test verification.</li>
+              
+              <li>Candidate passed all holdout test assertions.</li>
+              
+              <li>Candidate reduced lint issues by 1.</li>
+              
+              <li>Cost delta: $+0.0248 (0.0093 -> 0.0341)</li>
+              
+            </ul>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+            <div>
+              <h5 style="color: var(--warning); margin-bottom: 0.25rem;">Baseline Run (FAILED)</h5>
+              <div style="font-size: 0.85rem; color: #cbd5e1;">
+                Tests: 2/2 unit,
+                0/1 holdout |
+                Cost: $0.00933 |
+                Time: 16.15s
+              </div>
+              <div class="diff-box">--- a/app/users.py
++++ b/app/users.py
+@@ -10,2 +10,4 @@
++        # Missing length check validation
++        if 'phone_number' in extra:
++            payload['phone_number'] = str(extra['phone_number'])
+</div>
+            </div>
+            <div>
+              <h5 style="color: var(--success); margin-bottom: 0.25rem;">Candidate Run (SUCCESS)</h5>
+              <div style="font-size: 0.85rem; color: #cbd5e1;">
+                Tests: 2/2 unit,
+                1/1 holdout |
+                Cost: $0.03413 |
+                Time: 19.47s
+              </div>
+              <div class="diff-box">--- a/app/users.py
++++ b/app/users.py
+@@ -8,2 +8,9 @@
++    def create_user(self, user_id: str, email: str, name: str, phone_number: Optional[str] = None, **extra: Any) -> Dict[str, Any]:
++        if phone_number is not None:
++            cleaned = phone_number.strip()
++            if len(cleaned) < 7 or len(cleaned) > 15:
++                raise ValueError('Invalid phone number format')
++            extra['phone_number'] = cleaned
+</div>
+            </div>
+          </div>
+        </div>
+      </details>
+      
+    </div>
+
+  </div>
+</body>
+</html>
