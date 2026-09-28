@@ -419,5 +419,4 @@ For more details on test structure and coverage, see [`tests/README.md`](file://
 
 ## 13. License
 
-Distributed under the MIT License. See `LICENSE` for details.#   H a r n e s s _ b y _ t a h a  
- 
+Distributed under the MIT License. See `LICENSE` for details.#
